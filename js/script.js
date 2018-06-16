@@ -48,27 +48,34 @@ function GPSTracking() {
     var currentPosition, currentAccuracy;
     
     function onLocationFound(e) {
-        // If position defined, then remove the existing position marker and accuracy circle from the map
-        if(currentPosition) {
+        if(currentPosition) {        
             map.removeLayer(currentPosition);
             map.removeLayer(currentAccuracy);
         }
 
         var radius = e.accuracy / 2;
 
+        var prevPosition = currentPosition;
         currentPosition = L.marker(e.latlng).addTo(map);
         currentAccuracy = L.circle(e.latlng, radius).addTo(map);
+
+        addDoneArea(prevPosition, currentPosition);
     }
 
     map.on('locationfound', onLocationFound);
-
-    function onLocationError(e) {
-        alert(e.message);
-    }
-    
-    map.on('locationerror', onLocationError);
     
     setInterval(function() {
         map.locate({setView: true, maxZoom: 19});
     }, 3000);
+}
+
+function addDoneArea(prevPosition, newPosition) {
+    if(!prevPosition || !newPosition) return;
+    
+    var latlngs = [
+        [prevPosition._latlng.lat, prevPosition._latlng.lng],
+        [newPosition._latlng.lat, newPosition._latlng.lng],
+    ];
+
+    L.polyline(latlngs, {color: 'red'}).addTo(map);
 }
