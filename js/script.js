@@ -61,6 +61,8 @@ function loadMap() {
     })
 
     garden.addTo(map);
+
+    simulateOtherPeople();
     
     GPSTracking();
 }
@@ -188,4 +190,28 @@ function updateScore() {
             currentScore++;
         }, 30);
     });   
+}
+
+function simulateOtherPeople() {
+    /*var pos = [
+        [48.26784, 11.66491],
+        [48.26754, 11.66611],
+        [48.26834, 11.66611],
+        [48.26804, 11.66481],
+    ];*/
+
+    var pos = [
+        [48.26825, 11.66534],
+        [48.26831, 11.66536],
+        [48.26833, 11.66556],
+        [48.26821, 11.66566],
+    ];
+
+    var doneArea = L.polygon(pos, {
+        color: '#f1c40f',
+        stroke: false,
+        fillOpacity: 0.3
+    }).addTo(map);
+
+    doneAreas.push(doneArea);
 }
