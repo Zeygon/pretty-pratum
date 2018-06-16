@@ -54,8 +54,14 @@ footer {
 
 .map-wrapper {
     width: 100%;
-    height: 70%;
+    height: 65%;
     position: relative;
+}
+
+@media screen and (orientation:portrait) {
+    .map-wrapper {
+        height: 80%;
+    }
 }
 
 #map {
