@@ -1,9 +1,33 @@
 var map;
 var score = 0;
+var doneAreas = new Array();
+var gardenCoords = [
+    [48.26754, 11.66511],
+    [48.26754, 11.66611],
+    [48.26854, 11.66611],
+    [48.26824, 11.66481],
+];
+var garden;
 
-$(document).ready(function() {
+function toggleFullScreen() {
+    var doc = window.document;
+    var docEl = doc.documentElement;
+  
+    var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+    var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+  
+    if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+      requestFullScreen.call(docEl);
+    }
+    else {
+      cancelFullScreen.call(doc);
+    }
+  }
+
+$(document).ready(function() {    
     $('.user-response .start').on('click', function() {
         $('.start-view').hide();
+        toggleFullScreen();
         mow();
     });
 });
@@ -15,7 +39,7 @@ function mow() {
 
 function loadMap() {
     //map = L.map('map').setView([48.15765, 11.59190], 19);
-    map = L.map('map').setView([48.26789, 11.66561], 19);
+    map = L.map('map', {zoomControl: false}).setView([48.26789, 11.66561], 19);
 
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -24,23 +48,19 @@ function loadMap() {
         accessToken: 'pk.eyJ1IjoiZmFiaW9yaW5vIiwiYSI6ImNqaWgyamc1ejBhMTgzcXBtd3RncGZhcjMifQ.Hl3aEnoasoAJpbDdBCo-zQ'
     }).addTo(map);
 
-    var polygon = L.polygon([
-        /*
+    garden = L.polygon(/*[
         // English garden Munich
         [48.15730, 11.59140], // bottom left
         [48.15730, 11.59240], // top left
         [48.15830, 11.59240], // top right
         [48.15800, 11.59110], // bottom right
-        */
-        [48.26754, 11.66511], // bottom left
-        [48.26754, 11.66611], // top left
-        [48.26854, 11.66611], // top right
-        [48.26824, 11.66481], // bottom right
-    ], {
+    ]*/ gardenCoords, {
         color: '#27ae60',
         fillColor: '#2ecc71',
         fillOpacity: 0.3
-    }).addTo(map);
+    })
+
+    garden.addTo(map);
     
     GPSTracking();
 }
@@ -56,14 +76,11 @@ function GPSTracking() {
 
         var radius = e.accuracy / 2;
 
-        var prevPosition = currentPosition;
         currentPosition = L.marker(e.latlng).addTo(map);
         currentAccuracy = L.circle(e.latlng, radius).addTo(map);
 
-        addDoneArea(prevPosition, currentPosition);
-
-        /*score += 5;
-        updateScore();*/
+        checkDoneAreas(currentPosition);
+        addDoneArea(currentPosition);
     }
 
     map.on('locationfound', onLocationFound);
@@ -73,35 +90,77 @@ function GPSTracking() {
     }, 3000);
 }
 
-function addDoneArea(prevPosition, newPosition) {
-    if(!prevPosition || !newPosition) return;
+function checkDoneAreas(currentPosition) {
+    if(!garden.getBounds().contains(currentPosition.getLatLng())) {
+        return;
+    }
     
-    var latlngs = [
-        [prevPosition._latlng.lat, prevPosition._latlng.lng],
-        [newPosition._latlng.lat, newPosition._latlng.lng],
-    ];
-
-    L.polyline(latlngs, {color: 'red'}).addTo(map);
-}
-
-/*
-function isInDoneArea(marker, poly) {
-    var polyPoints = poly.getLatLngs();       
-    var x = marker.getLatLng().lat, y = marker.getLatLng().lng;
-
-    var inside = false;
-    for (var i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
-        var xi = polyPoints[i].lat, yi = polyPoints[i].lng;
-        var xj = polyPoints[j].lat, yj = polyPoints[j].lng;
-
-        var intersect = ((yi > y) != (yj > y))
-            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-        if (intersect) inside = !inside;
+    var hasScored = true;
+    for(var i = 0; i < doneAreas.length; i++) {
+        var a = doneAreas[i];
+        if(a.getBounds().contains(currentPosition.getLatLng())) {
+            hasScored = false;
+            break;
+        }
     }
 
-    return inside;
+    if(hasScored) {
+        score += 5;
+        updateScore();
+    }
 }
-*/
+
+var oldPosition = null;
+function addDoneArea(newPosition) {
+    if(!newPosition) return;
+    if(!oldPosition) {
+        oldPosition = newPosition;
+        return;
+    }
+
+    var diff = 0.00005;
+    
+    var horizontalMovement = true;
+    if(Math.abs(oldPosition._latlng.lng - newPosition._latlng.lng) > Math.abs(oldPosition._latlng.lat - newPosition._latlng.lat)) {
+      horizontalMovement = false;  
+    }
+
+    var pos = [];
+
+    if(!horizontalMovement) {
+        pos = [
+            [newPosition._latlng.lat + diff, newPosition._latlng.lng],
+            [newPosition._latlng.lat - diff, newPosition._latlng.lng],
+            [oldPosition._latlng.lat - diff, oldPosition._latlng.lng],
+            [oldPosition._latlng.lat + diff, oldPosition._latlng.lng],
+        ];
+    }
+    else {
+        pos = [
+            [newPosition._latlng.lat, newPosition._latlng.lng - diff],
+            [newPosition._latlng.lat, newPosition._latlng.lng + diff],
+            [oldPosition._latlng.lat, oldPosition._latlng.lng + diff],
+            [oldPosition._latlng.lat, oldPosition._latlng.lng - diff],
+        ]
+    }
+
+    var doneArea = L.polygon(pos, {
+        color: '#e74c3c',
+        stroke: false,
+        fillOpacity: 0.3
+    })/*.addTo(map)*/;
+
+    doneAreas.push(doneArea);
+
+    L.polyline([
+        [oldPosition._latlng.lat, oldPosition._latlng.lng],
+        [newPosition._latlng.lat, newPosition._latlng.lng],
+    ], {
+        color: '#e74c3c',
+    }).addTo(map);
+
+    oldPosition = newPosition;
+}
 
 function updateScore() {
     var scoreWrapper = $('.score');
