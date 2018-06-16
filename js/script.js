@@ -1,4 +1,5 @@
 var map;
+var score = 0;
 
 $(document).ready(function() {
     $('.user-response .start').on('click', function() {
@@ -60,6 +61,9 @@ function GPSTracking() {
         currentAccuracy = L.circle(e.latlng, radius).addTo(map);
 
         addDoneArea(prevPosition, currentPosition);
+
+        /*score += 5;
+        updateScore();*/
     }
 
     map.on('locationfound', onLocationFound);
@@ -78,4 +82,51 @@ function addDoneArea(prevPosition, newPosition) {
     ];
 
     L.polyline(latlngs, {color: 'red'}).addTo(map);
+}
+
+/*
+function isInDoneArea(marker, poly) {
+    var polyPoints = poly.getLatLngs();       
+    var x = marker.getLatLng().lat, y = marker.getLatLng().lng;
+
+    var inside = false;
+    for (var i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
+        var xi = polyPoints[i].lat, yi = polyPoints[i].lng;
+        var xj = polyPoints[j].lat, yj = polyPoints[j].lng;
+
+        var intersect = ((yi > y) != (yj > y))
+            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+
+    return inside;
+}
+*/
+
+function updateScore() {
+    var scoreWrapper = $('.score');
+    
+    scoreWrapper.show();
+    scoreWrapper.animate({
+        'top': 0,
+    }, 300, function() {
+       var currentScoreWrapper = scoreWrapper.find('.current-score');
+        var currentScore = parseInt(currentScoreWrapper.text());
+
+        var incScoreInterval = setInterval(function() {
+            currentScoreWrapper.text(currentScore);
+            if (currentScore >= score) {
+                clearInterval(incScoreInterval);
+
+                scoreWrapper.delay(2000).animate({
+                    'top': -66,
+                }, 300, function() {
+                    scoreWrapper.hide();
+                });
+
+                return;
+            }
+            currentScore++;
+        }, 30);
+    });   
 }
