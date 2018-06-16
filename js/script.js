@@ -13,7 +13,8 @@ function mow() {
 }
 
 function loadMap() {
-    map = L.map('map').setView([48.15765, 11.59190], 19);
+    //map = L.map('map').setView([48.15765, 11.59190], 19);
+    map = L.map('map').setView([48.26789, 11.66561], 19);
 
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -23,10 +24,17 @@ function loadMap() {
     }).addTo(map);
 
     var polygon = L.polygon([
+        /*
+        // English garden Munich
         [48.15730, 11.59140], // bottom left
         [48.15730, 11.59240], // top left
         [48.15830, 11.59240], // top right
         [48.15800, 11.59110], // bottom right
+        */
+        [48.26754, 11.66511], // bottom left
+        [48.26754, 11.66611], // top left
+        [48.26854, 11.66611], // top right
+        [48.26824, 11.66481], // bottom right
     ], {
         color: '#27ae60',
         fillColor: '#2ecc71',
