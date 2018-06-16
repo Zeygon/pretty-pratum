@@ -201,15 +201,15 @@ function simulateOtherPeople() {
     ];*/
 
     var pos = [
-        [48.26825, 11.66534],
-        [48.26831, 11.66536],
+        [48.26825, 11.66524],
+        [48.26831, 11.66556],
         [48.26833, 11.66556],
-        [48.26821, 11.66566],
+        [48.26821, 11.66596],
     ];
 
     var doneArea = L.polygon(pos, {
         color: '#f1c40f',
-        stroke: false,
+        stroke: true,
         fillOpacity: 0.3
     }).addTo(map);
 
